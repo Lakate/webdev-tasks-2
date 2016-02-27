@@ -3,8 +3,7 @@
   "dependencies": {
     "i": "^0.3.4",
     "jscs": "2.2.1",
-    "mongodb": "^2.1.7",
-    "mongodmb": "^2.1.7"
+    "mongodb": "^2.1.7"
   },
   "scripts": {
     "lint": "jscs ."

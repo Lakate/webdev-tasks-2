@@ -9,7 +9,9 @@ module.exports = {
     negative: false,
     find: doFindQuery,
     insert: doInsertQuery,
-    remove: doRemoveQuery
+    remove: doRemoveQuery,
+    set: createSet,
+    update: doUpdateQuery
 };
 
 /**
@@ -78,7 +80,8 @@ function addOperations(field) {
  */
 function doFindQuery(callback) {
     var collectionName = this.collect;
-    var query = this.query;
+    var query = this.query || {};
+    this.query = {};
     mongoClient.connect(this.url, function (err, db) {
         if (err) {
             console.error(err);
@@ -120,15 +123,51 @@ function doInsertQuery(newDoc, callback) {
  */
 function doRemoveQuery(callback) {
     var collectionName = this.collect;
+    var query = this.query || {};
+    this.query = {};
     mongoClient.connect(this.url, function (err, db) {
         if (err) {
             console.error(err);
         } else {
             var collection = db.collection(collectionName);
-            collection.remove(function (err, result) {
+            collection.remove(query, function (err, result) {
                 callback(err, result);
                 db.close();
             });
         }
     });
 };
+
+/**
+ * функция, устанавлвающая какое поле нужно изменить
+ *
+ * @param field поле, которое надо изменить
+ * @param value новое значение поля
+ */
+function createSet(field, value) {
+    this.updateField = {$set: {}};
+    this.updateField.$set[field] = value;
+    return this;
+}
+
+/**
+ * функция, выполняющая обновление данных студентов
+ *
+ * @param callback
+ */
+function doUpdateQuery(callback) {
+    var collectionName = this.collect;
+    var query = this.query || {};
+    var updateField = this.updateField;
+    mongoClient.connect(this.url, function (err, db) {
+        if (err) {
+            console.error(err);
+        } else {
+            var collection = db.collection(collectionName);
+            collection.update(query, updateField, function (err, result) {
+                callback(err, result);
+                db.close();
+            });
+        }
+    });
+}

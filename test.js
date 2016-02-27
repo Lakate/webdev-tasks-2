@@ -7,8 +7,7 @@ multivarka
     .collection('students')
     .remove(function (err, result) {
         if (!err) {
-            console.log("Collection was cleaned");
-            //console.log(result);
+            console.log('Collection was cleaned');
         }
     });
 
@@ -23,7 +22,7 @@ multivarka
     .collection('students')
     .insert(petr, function (err, result) {
         if (!err) {
-            console.log("Insert:");
+            console.log('Insert:');
             console.log(result);
         }
     });
@@ -39,7 +38,7 @@ multivarka
     .collection('students')
     .insert(kate, function (err, result) {
         if (!err) {
-            console.log("Insert:");
+            console.log('Insert:');
             console.log(result);
         }
     });
@@ -81,9 +80,20 @@ multivarka.
     server('mongodb://localhost/urfu-2015')
     .collection('students')
     .where('group').include(['ПИ-301', 'ПИ-302', 'КБ-301'])
+    .set('group', 'ПИ-302').update(function (err, data) {
+        if (!err) {
+            console.log('Изменили группы на ПИ-302 ');
+        }
+    });
+
+
+multivarka.
+    server('mongodb://localhost/urfu-2015')
+    .collection('students')
+    .where('group').include(['ПИ-301', 'ПИ-302', 'КБ-301'])
     .find(function (err, data) {
         if (!err) {
-            console.log('Группы ПИ-301', 'ПИ-302', 'КБ-301: ');
+            console.log('Люди из ПИ-301', 'ПИ-302', 'КБ-301: ');
             console.log(data);
         }
     });
@@ -91,10 +101,20 @@ multivarka.
 multivarka.
     server('mongodb://localhost/urfu-2015')
     .collection('students')
-    .where('group').not().equal('ПИ-302')
+    .where('group').equal('ПИ-302')
+    .remove(function (err, data) {
+        if (!err) {
+            console.log('Удалены все люди из ПИ-302');
+        }
+    });
+
+multivarka.
+    server('mongodb://localhost/urfu-2015')
+    .collection('students')
+    .where('group').include(['ПИ-301', 'ПИ-302', 'КБ-301'])
     .find(function (err, data) {
         if (!err) {
-            console.log('Все группы, кроме ПИ-302: ');
+            console.log('Группы ПИ-301', 'ПИ-302', 'КБ-301: ');
             console.log(data);
         }
     });
