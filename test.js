@@ -5,7 +5,7 @@ const multivarka = require('./multivarka');
 multivarka
     .server('mongodb://localhost/urfu-2015')
     .collection('students')
-    .remove(function (err, result) {
+    .remove((err) => {
         if (!err) {
             console.log('Collection was cleaned');
         }
@@ -17,75 +17,81 @@ const petr = {
     grade: 4
 };
 
-multivarka
-    .server('mongodb://localhost/urfu-2015')
-    .collection('students')
-    .insert(petr, function (err, result) {
-        if (!err) {
-            console.log('Insert:');
-            console.log(result);
-        }
-    });
-
 const kate = {
     name: 'Катя',
     group: 'КБ-301',
     grade: 5
 };
 
+const daniil = {
+    name: 'Даниил',
+    group: 'КБ-301',
+    grade: 4
+};
+
 multivarka
     .server('mongodb://localhost/urfu-2015')
     .collection('students')
-    .insert(kate, function (err, result) {
+    .insert(petr, (err) => {
         if (!err) {
-            console.log('Insert:');
-            console.log(result);
+            console.log('Insert petr');
+        } else {
+            console.error(err);
         }
     });
 
-multivarka.
-    server('mongodb://localhost/urfu-2015')
+multivarka
+    .server('mongodb://localhost/urfu-2015')
     .collection('students')
-    .where('group').equal('ПИ-301')
-    .find(function (err, data) {
+    .insert(kate, (err) => {
         if (!err) {
-            console.log('Группа ПИ-301: ');
-            console.log(data);
+            console.log('Insert kate');
+        } else {
+            console.error(err);
         }
     });
 
-multivarka.
-    server('mongodb://localhost/urfu-2015')
+multivarka
+    .server('mongodb://localhost/urfu-2015')
     .collection('students')
-    .where('grade').lessThan(5)
-    .find(function (err, data) {
+    .insert(daniil, (err) => {
         if (!err) {
-            console.log('Оценки меньше 5 у: ');
-            console.log(data);
+            console.log('Insert daniil');
+        } else {
+            console.error(err);
         }
     });
 
-multivarka.
-    server('mongodb://localhost/urfu-2015')
+var query1 = multivarka
+    .server('mongodb://localhost/urfu-2015')
     .collection('students')
-    .where('grade').greatThan(4)
-    .find(function (err, data) {
-        if (!err) {
-            console.log('Оценки больше 4 у: ');
-            console.log(data);
-        }
-    });
+    .where('group').equal('ПИ-302');
 
-multivarka.
-    server('mongodb://localhost/urfu-2015')
+var query2 = multivarka
+    .server('mongodb://localhost/urfu-2015')
     .collection('students')
-    .where('group').include(['ПИ-301', 'ПИ-302', 'КБ-301'])
-    .set('group', 'ПИ-302').update(function (err, data) {
-        if (!err) {
-            console.log('Изменили группы на ПИ-302 ');
-        }
-    });
+    .where('group').equal('КБ-301')
+    .where('grade').equal(4);
 
+query1.remove(function (err) {
+    if (!err) {
+        console.log('Удалены Люди из ПИ-302');
+    }
+});
+
+query1.find(function (err, data) {
+    if (!err) {
+        console.log('Люди из ПИ-302: ');
+        console.log(data);
+    }
+});
+
+query2.find(function (err, data) {
+    if (!err) {
+        console.log('Люди из КБ-301 с оценкой: ');
+        console.log(data);
+    }
+});
 
 multivarka.
     server('mongodb://localhost/urfu-2015')
@@ -94,27 +100,6 @@ multivarka.
     .find(function (err, data) {
         if (!err) {
             console.log('Люди из ПИ-301', 'ПИ-302', 'КБ-301: ');
-            console.log(data);
-        }
-    });
-
-multivarka.
-    server('mongodb://localhost/urfu-2015')
-    .collection('students')
-    .where('group').equal('ПИ-302')
-    .remove(function (err, data) {
-        if (!err) {
-            console.log('Удалены все люди из ПИ-302');
-        }
-    });
-
-multivarka.
-    server('mongodb://localhost/urfu-2015')
-    .collection('students')
-    .where('group').include(['ПИ-301', 'ПИ-302', 'КБ-301'])
-    .find(function (err, data) {
-        if (!err) {
-            console.log('Группы ПИ-301', 'ПИ-302', 'КБ-301: ');
             console.log(data);
         }
     });

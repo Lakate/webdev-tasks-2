@@ -2,26 +2,23 @@
 
 var mongoClient = require('mongodb').MongoClient;
 
-module.exports = {
-    server: setUrl,
-    collection: setCollection,
-    where: createQuery,
-    negative: false,
-    find: doFindQuery,
-    insert: doInsertQuery,
-    remove: doRemoveQuery,
-    set: createSet,
-    update: doUpdateQuery
+var multivarka = {
+    server: doNewConnection
 };
 
-/**
- * функция, устанавливающая адрес сервера бд
- *
- * @param url
- */
-function setUrl(url) {
-    this.url = url;
-    return this;
+function doNewConnection(url) {
+    return {
+        url: url,
+        query: {},
+        negative: false,
+        collection: setCollection,
+        where: createQuery,
+        find: doFindQuery,
+        insert: doInsertQuery,
+        remove: doRemoveQuery,
+        set: createSet,
+        update: doUpdateQuery
+    };
 }
 
 /**
@@ -50,7 +47,6 @@ function createQuery(field) {
  * @param field
  */
 function addOperations(field) {
-    this.query = {};
     this.equal = function (param) {
         this.query[field] = this.negative ? {$ne: param} : param;
         return this;
@@ -81,18 +77,19 @@ function addOperations(field) {
 function doFindQuery(callback) {
     var collectionName = this.collect;
     var query = this.query || {};
-    this.query = {};
-    mongoClient.connect(this.url, function (err, db) {
-        if (err) {
-            console.error(err);
-        } else {
-            var collection = db.collection(collectionName);
-            collection.find(query).toArray(function (err, result) {
-                callback(err, result);
-                db.close();
-            });
-        }
-    });
+    var db;
+    mongoClient.connect(this.url)
+        .then(database => {
+            db = database;
+            return db.collection(collectionName).find(query).toArray();
+        })
+        .then(result => {
+            callback(null, result);
+            db.close();
+        })
+        .catch(err => {
+            callback(err);
+        });
 };
 
 /**
@@ -103,16 +100,18 @@ function doFindQuery(callback) {
  */
 function doInsertQuery(newDoc, callback) {
     var collectionName = this.collect;
-    mongoClient.connect(this.url, function (err, db) {
-        if (err) {
-            console.error(err);
-        } else {
-            var collection = db.collection(collectionName);
-            collection.insert(newDoc, function (err, result) {
-                callback(err, result);
-                db.close();
-            });
-        }
+    var db;
+    mongoClient.connect(this.url)
+    .then(database => {
+        db = database;
+        return db.collection(collectionName).insert(newDoc);
+    })
+    .then(result => {
+        callback(null, result);
+        db.close();
+    })
+    .catch(err => {
+        callback(err);
     });
 };
 
@@ -124,18 +123,19 @@ function doInsertQuery(newDoc, callback) {
 function doRemoveQuery(callback) {
     var collectionName = this.collect;
     var query = this.query || {};
-    this.query = {};
-    mongoClient.connect(this.url, function (err, db) {
-        if (err) {
-            console.error(err);
-        } else {
-            var collection = db.collection(collectionName);
-            collection.remove(query, function (err, result) {
-                callback(err, result);
-                db.close();
-            });
-        }
-    });
+    var db;
+    mongoClient.connect(this.url)
+        .then(database => {
+            db = database;
+            return db.collection(collectionName).remove(query);
+        })
+        .then(result => {
+            callback(null, result);
+            db.close();
+        })
+        .catch(err => {
+            callback(err);
+        });
 };
 
 /**
@@ -159,15 +159,19 @@ function doUpdateQuery(callback) {
     var collectionName = this.collect;
     var query = this.query || {};
     var updateField = this.updateField;
-    mongoClient.connect(this.url, function (err, db) {
-        if (err) {
-            console.error(err);
-        } else {
-            var collection = db.collection(collectionName);
-            collection.update(query, updateField, function (err, result) {
-                callback(err, result);
-                db.close();
-            });
-        }
-    });
+    var db;
+    mongoClient.connect(this.url)
+        .then(database => {
+            db = database;
+            return db.collection(collectionName).updateMany(query, updateField);
+        })
+        .then(result => {
+            callback(null, result);
+            db.close();
+        })
+        .catch(err => {
+            callback(err);
+        });
 }
+
+module.exports = multivarka;
