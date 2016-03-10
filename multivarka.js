@@ -7,19 +7,21 @@ var multivarka = {
 };
 
 function doNewConnection(url) {
-    return {
-        url: url,
-        query: {},
-        negative: false,
-        collection: setCollection,
-        where: createQuery,
-        find: doFindQuery,
-        insert: doInsertQuery,
-        remove: doRemoveQuery,
-        set: createSet,
-        update: doUpdateQuery
-    };
+    return new Connection(url);
 }
+
+function Connection (url) {
+    this.url = url;
+    this.query = {};
+    this.negative = false;
+}
+Connection.prototype.collection = setCollection;
+Connection.prototype.where = createQuery;
+Connection.prototype.find = doFindQuery;
+Connection.prototype.insert = doInsertQuery;
+Connection.prototype.remove = doRemoveQuery;
+Connection.prototype.set = createSet;
+Connection.prototype.update = doUpdateQuery;
 
 /**
  * функция, устанавливающая имя таблицы
@@ -89,6 +91,7 @@ function doFindQuery(callback) {
         })
         .catch(err => {
             callback(err);
+            db.close();
         });
 };
 
@@ -107,11 +110,12 @@ function doInsertQuery(newDoc, callback) {
         return db.collection(collectionName).insert(newDoc);
     })
     .then(result => {
-        callback(null, result);
+        callback(null, null, 'Insert ' + newDoc.name);
         db.close();
     })
     .catch(err => {
         callback(err);
+        db.close();
     });
 };
 
@@ -120,21 +124,23 @@ function doInsertQuery(newDoc, callback) {
  *
  * @param callback
  */
-function doRemoveQuery(callback) {
+function doRemoveQuery(callback, answer) {
     var collectionName = this.collect;
     var query = this.query || {};
     var db;
     mongoClient.connect(this.url)
         .then(database => {
             db = database;
+            console.log(db.collection(collectionName).remove(query));
             return db.collection(collectionName).remove(query);
         })
-        .then(result => {
-            callback(null, result);
+        .then(() => {
+            callback(null, null, answer);
             db.close();
         })
         .catch(err => {
             callback(err);
+            db.close();
         });
 };
 
@@ -171,6 +177,7 @@ function doUpdateQuery(callback) {
         })
         .catch(err => {
             callback(err);
+            db.close();
         });
 }
 
