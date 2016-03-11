@@ -10,7 +10,7 @@ function doNewConnection(url) {
     return new Connection(url);
 }
 
-function Connection (url) {
+function Connection(url) {
     this.url = url;
     this.query = {};
     this.negative = false;
@@ -76,23 +76,24 @@ function addOperations(field) {
  *
  * @param callback
  */
-function doFindQuery(callback) {
+function doFindQuery(callback, answer) {
     var collectionName = this.collect;
     var query = this.query || {};
     var db;
-    mongoClient.connect(this.url)
+    var responce = mongoClient.connect(this.url)
         .then(database => {
             db = database;
             return db.collection(collectionName).find(query).toArray();
         })
         .then(result => {
-            callback(null, result);
+            callback(null, result, answer);
             db.close();
         })
         .catch(err => {
             callback(err);
             db.close();
         });
+    return responce;
 };
 
 /**
@@ -104,12 +105,12 @@ function doFindQuery(callback) {
 function doInsertQuery(newDoc, callback) {
     var collectionName = this.collect;
     var db;
-    mongoClient.connect(this.url)
+    var responce = mongoClient.connect(this.url)
     .then(database => {
         db = database;
         return db.collection(collectionName).insert(newDoc);
     })
-    .then(result => {
+    .then(() => {
         callback(null, null, 'Insert ' + newDoc.name);
         db.close();
     })
@@ -117,6 +118,7 @@ function doInsertQuery(newDoc, callback) {
         callback(err);
         db.close();
     });
+    return responce;
 };
 
 /**
@@ -128,10 +130,9 @@ function doRemoveQuery(callback, answer) {
     var collectionName = this.collect;
     var query = this.query || {};
     var db;
-    mongoClient.connect(this.url)
+    var responce = mongoClient.connect(this.url)
         .then(database => {
             db = database;
-            console.log(db.collection(collectionName).remove(query));
             return db.collection(collectionName).remove(query);
         })
         .then(() => {
@@ -142,6 +143,7 @@ function doRemoveQuery(callback, answer) {
             callback(err);
             db.close();
         });
+    return responce;
 };
 
 /**
@@ -166,7 +168,7 @@ function doUpdateQuery(callback) {
     var query = this.query || {};
     var updateField = this.updateField;
     var db;
-    mongoClient.connect(this.url)
+    var responce = mongoClient.connect(this.url)
         .then(database => {
             db = database;
             return db.collection(collectionName).updateMany(query, updateField);
@@ -179,6 +181,7 @@ function doUpdateQuery(callback) {
             callback(err);
             db.close();
         });
-}
+    return responce;
+};
 
 module.exports = multivarka;

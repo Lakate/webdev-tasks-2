@@ -1,15 +1,7 @@
 'use strict';
 
+const co = require('co');
 const multivarka = require('./multivarka');
-
-multivarka
-    .server('mongodb://localhost/urfu-2015')
-    .collection('students')
-    .remove((err) => {
-        if (!err) {
-            console.log('Collection was cleaned');
-        }
-    });
 
 const petr = {
     name: 'Пётр',
@@ -29,38 +21,9 @@ const daniil = {
     grade: 4
 };
 
-multivarka
+var query0 = multivarka
     .server('mongodb://localhost/urfu-2015')
-    .collection('students')
-    .insert(petr, (err) => {
-        if (!err) {
-            console.log('Insert petr');
-        } else {
-            console.error(err);
-        }
-    });
-
-multivarka
-    .server('mongodb://localhost/urfu-2015')
-    .collection('students')
-    .insert(kate, (err) => {
-        if (!err) {
-            console.log('Insert kate');
-        } else {
-            console.error(err);
-        }
-    });
-
-multivarka
-    .server('mongodb://localhost/urfu-2015')
-    .collection('students')
-    .insert(daniil, (err) => {
-        if (!err) {
-            console.log('Insert daniil');
-        } else {
-            console.error(err);
-        }
-    });
+    .collection('students');
 
 var query1 = multivarka
     .server('mongodb://localhost/urfu-2015')
@@ -73,33 +36,30 @@ var query2 = multivarka
     .where('group').equal('КБ-301')
     .where('grade').equal(4);
 
-query1.remove(function (err) {
-    if (!err) {
-        console.log('Удалены Люди из ПИ-302');
+var callback = (err, data, description) => {
+    if (description !== undefined) {
+        console.log(description);
     }
-});
-
-query1.find(function (err, data) {
     if (!err) {
-        console.log('Люди из ПИ-302: ');
-        console.log(data);
-    }
-});
-
-query2.find(function (err, data) {
-    if (!err) {
-        console.log('Люди из КБ-301 с оценкой: ');
-        console.log(data);
-    }
-});
-
-multivarka.
-    server('mongodb://localhost/urfu-2015')
-    .collection('students')
-    .where('group').include(['ПИ-301', 'ПИ-302', 'КБ-301'])
-    .find(function (err, data) {
-        if (!err) {
-            console.log('Люди из ПИ-301', 'ПИ-302', 'КБ-301: ');
+        if (data) {
             console.log(data);
         }
-    });
+    } else {
+        console.error(err);
+    }
+};
+
+co(function *() {
+    yield query0.remove(callback, 'Collection was cleaned');
+    yield query0.insert(daniil, callback);
+    yield query0.insert(petr, callback);
+    yield query0.insert(kate, callback);
+    yield query1.remove(callback, 'Удалены Люди из ПИ-302');
+    yield query1.find(callback, 'Люди из ПИ-302: ');
+    yield query2.find(callback, 'Люди из КБ-301 с оценкой: ');
+    yield multivarka.
+        server('mongodb://localhost/urfu-2015')
+        .collection('students')
+        .where('group').include(['ПИ-301', 'ПИ-302', 'КБ-301'])
+        .find(callback, 'Люди из ПИ-301, ПИ-302, КБ-301: ');
+});
