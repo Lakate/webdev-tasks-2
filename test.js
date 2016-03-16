@@ -51,9 +51,9 @@ var callback = (err, data, description) => {
 
 co(function *() {
     yield query0.remove(callback, 'Collection was cleaned');
-    yield query0.insert(daniil, callback);
-    yield query0.insert(petr, callback);
-    yield query0.insert(kate, callback);
+    yield query0.insert(daniil, callback, 'Insert Daniil');
+    yield query0.insert(petr, callback, 'Insert Petr');
+    yield query0.insert(kate, callback, 'Insert Kate');
     yield query1.remove(callback, 'Удалены Люди из ПИ-302');
     yield query1.find(callback, 'Люди из ПИ-302: ');
     yield query2.find(callback, 'Люди из КБ-301 с оценкой: ');

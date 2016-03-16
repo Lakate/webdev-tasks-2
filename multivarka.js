@@ -76,49 +76,24 @@ function addOperations(field) {
  *
  * @param callback
  */
-function doFindQuery(callback, answer) {
+function doFindQuery(callback, queryDescription) {
     var collectionName = this.collect;
-    var query = this.query || {};
-    var db;
-    var responce = mongoClient.connect(this.url)
-        .then(database => {
-            db = database;
-            return db.collection(collectionName).find(query).toArray();
-        })
-        .then(result => {
-            callback(null, result, answer);
-            db.close();
-        })
-        .catch(err => {
-            callback(err);
-            db.close();
-        });
-    return responce;
+    return connectToDB.call(this, queryDescription, (db, query) => {
+        return db.collection(collectionName).find(query).toArray();
+    }, 'find', callback);
 };
 
 /**
- * функция, выполняющая вставку нового поля в таблицу
+  * функция, выполняющая вставку нового поля в таблицу
  *
  * @param newDoc
  * @param callback
  */
-function doInsertQuery(newDoc, callback) {
+function doInsertQuery(newDoc, callback, queryDescription) {
     var collectionName = this.collect;
-    var db;
-    var responce = mongoClient.connect(this.url)
-    .then(database => {
-        db = database;
+    return connectToDB.call(this, queryDescription, (db, query) => {
         return db.collection(collectionName).insert(newDoc);
-    })
-    .then(() => {
-        callback(null, null, 'Insert ' + newDoc.name);
-        db.close();
-    })
-    .catch(err => {
-        callback(err);
-        db.close();
-    });
-    return responce;
+    }, 'insert', callback);
 };
 
 /**
@@ -126,24 +101,11 @@ function doInsertQuery(newDoc, callback) {
  *
  * @param callback
  */
-function doRemoveQuery(callback, answer) {
+function doRemoveQuery(callback, queryDescription) {
     var collectionName = this.collect;
-    var query = this.query || {};
-    var db;
-    var responce = mongoClient.connect(this.url)
-        .then(database => {
-            db = database;
-            return db.collection(collectionName).remove(query);
-        })
-        .then(() => {
-            callback(null, null, answer);
-            db.close();
-        })
-        .catch(err => {
-            callback(err);
-            db.close();
-        });
-    return responce;
+    return connectToDB.call(this, queryDescription, (db, query) => {
+        return db.collection(collectionName).remove(query);
+    }, 'remove', callback);
 };
 
 /**
@@ -163,25 +125,41 @@ function createSet(field, value) {
  *
  * @param callback
  */
-function doUpdateQuery(callback) {
+function doUpdateQuery(callback, queryDescription) {
     var collectionName = this.collect;
-    var query = this.query || {};
     var updateField = this.updateField;
+    return connectToDB.call(this, queryDescription, (db, query) => {
+        return db.collection(collectionName).updateMany(query, updateField);
+    }, 'update', callback);
+};
+
+/**
+ * функция, реализующая подключение к Mongo и выполняющая запросы
+ *
+ * @param queryDescription описание запроса. Необходимо для вывода ответа
+ * @param {function} doQuery функция, реализующая запрос к БД
+ * @param {string} typeQuery find|remove|insert|update тип запроса
+ * @param {function} callback колбек, для вывода ответа на экран
+ */
+function connectToDB(queryDescription, doQuery, typeQuery, callback) {
     var db;
-    var responce = mongoClient.connect(this.url)
+    return mongoClient.connect(this.url)
         .then(database => {
             db = database;
-            return db.collection(collectionName).updateMany(query, updateField);
+            return doQuery(db, this.query);
         })
         .then(result => {
-            callback(null, result);
+            if (typeQuery === 'find') {
+                callback(null, result, queryDescription);
+            } else {
+                callback(null, null, queryDescription);
+            }
             db.close();
         })
         .catch(err => {
             callback(err);
             db.close();
         });
-    return responce;
-};
+}
 
 module.exports = multivarka;
