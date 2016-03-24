@@ -51,18 +51,22 @@ function createQuery(field) {
 function addOperations(field) {
     this.equal = function (param) {
         this.query[field] = this.negative ? {$ne: param} : param;
+        this.negative = false;
         return this;
     };
     this.lessThan = function (param) {
         this.query[field] = this.negative ? {$gte: param} : {$lt: param};
+        this.negative = false;
         return this;
     };
     this.greatThan = function (param) {
         this.query[field] = this.negative ? {$lte: param} : {$gt: param};
+        this.negative = false;
         return this;
     };
     this.include = function (param) {
         this.query[field] = this.negative ? {$nin: param} : {$in: param};
+        this.negative = false;
         return this;
     };
     this.not = function () {
